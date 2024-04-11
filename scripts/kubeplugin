@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Define command-line arguments
+
+GREEN='\e[32m'
+RESET='\e[0m'
+
+
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 <namespace> <resource_type>"
+		echo select NAMESPACE:
+		echo -e $GREEN $(kubectl get namespaces | tail -n +2 | cut -d " " -f 1) $RESET
+		echo possible RESOURCES:
+		echo -e $GREEN "pods nodes" $RESET
+    exit 1
+fi
+
+NAMESPACE=$1
+RESOURCE_TYPE=$2
+
+# Retrieve resource usage statistics from Kubernetes
+kubectl top $RESOURCE_TYPE -n $NAMESPACE | tail -n +2 | while read line
+do
+  # Extract CPU and memory usage from the output
+  NAME=$(echo $line | awk '{print $1}')
+  CPU=$(echo $line | awk '{print $2}')
+  MEMORY=$(echo $line | awk '{print $3}')
+
+  # Output the statistics to the console
+  # "Resource, Namespace, Name, CPU, Memory"
+	echo "$RESOURCE_TYPE, $NAMESPACE, $NAME, $CPU, $MEMORY"
+done
